@@ -25,12 +25,16 @@ public class Dao {
 		}		
 	}
 	
-	public ArrayList<Asiakas> lueKaikki() {
+	public ArrayList<Asiakas> lueKaikki(String hakusana) {
 		Connection con = yhdista();
 		ArrayList<Asiakas> asiakkaat = new ArrayList<Asiakas>();
 		if (con != null) {
 			try {
-				PreparedStatement ps = con.prepareStatement("SELECT * FROM asiakkaat");
+				PreparedStatement ps = con.prepareStatement("SELECT * FROM asiakkaat WHERE etunimi LIKE ? or sukunimi LIKE ? or sposti LIKE ? or puhelin LIKE ?");
+				ps.setString(1, hakusana);
+				ps.setString(2, hakusana);
+				ps.setString(3, hakusana);
+				ps.setString(4, hakusana);
 				ResultSet rs = ps.executeQuery();
 				while (rs.next()) {
 					Asiakas asiakas = new Asiakas();

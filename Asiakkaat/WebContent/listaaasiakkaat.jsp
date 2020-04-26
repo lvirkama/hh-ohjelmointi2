@@ -23,7 +23,7 @@ tbody>tr:nth-child(even) {
 		<tr>
 			<th colspan="2" style="text-align:right">Hakusana:</th>
 			<th><input type="text" id="hakukentta" /></th>
-			<th></th>
+			<th><input type="button" id="hakunappi" value="Hae" /></th>
 		</tr>
 		<tr>
 			<th>Etunimi</th>
@@ -37,7 +37,20 @@ tbody>tr:nth-child(even) {
 </table>
 <script>
 $(document).ready(function(){
-	$.ajax({url:"Asiakkaat", type:"GET", dataType:"json", success:function(result){//Funktio palauttaa tiedot json-objektina		
+	haeAsiakkaat();
+	$("#hakunappi").click(function(){		
+		haeAsiakkaat();
+	});
+	$(document.body).on("keydown", function(event){
+		  if(event.which==13){ //Enteriä painettu, ajetaan haku
+			  haeAsiakkaat();
+		  }
+	});
+	$("#hakukentta").focus(); 
+});
+function haeAsiakkaat() {
+	$("#listaus tbody").empty();
+	$.ajax({url:encodeURI("Asiakkaat/"+$("#hakukentta").val()), type:"GET", dataType:"json", success:function(result){//Funktio palauttaa tiedot json-objektina		
 		$.each(result.asiakkaat, function(i, field){  
         	var htmlStr;
         	htmlStr+="<tr>";
@@ -48,14 +61,9 @@ $(document).ready(function(){
         	htmlStr+="</tr>";
         	$("#listaus tbody").append(htmlStr);
         });	
-    }});
-   $("#hakukentta").on("keyup", function() {
-	    var value = $(this).val().toLowerCase();
-	    $("#listaus tbody tr").filter(function() {
-	      $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-	    });
-	  });	
-});	
+    }});		
+}
+
 
 </script>
 </body>
