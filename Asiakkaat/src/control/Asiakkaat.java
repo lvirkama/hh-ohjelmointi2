@@ -33,7 +33,6 @@ public class Asiakkaat extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
 		String hakusana = request.getPathInfo().replace("/", "");
 		Dao dao = new Dao();
 		ArrayList<Asiakas> asiakkaat = dao.lueKaikki(hakusana); 
@@ -47,7 +46,44 @@ public class Asiakkaat extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		doGet(request, response);
+		JSONObject json = new JsonStrToObj().convert(request);
+		Asiakas asiakas = new Asiakas();
+		asiakas.setEtunimi(json.getString("etunimi"));
+		asiakas.setSukunimi(json.getString("sukunimi"));
+		asiakas.setPuhelin(json.getString("puhelin"));
+		asiakas.setSposti(json.getString("sposti"));
+		response.setContentType("application/json");
+		PrintWriter out = response.getWriter();
+		Dao dao = new Dao();
+		if (dao.lisaaAsiakas(asiakas)) {
+			out.println("{\"response\":0}");
+		}
+		else {
+			out.println("{\"response\":1}");
+		}
 	}
 
+	@Override
+	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String hakusana = request.getPathInfo().replace("/", "");
+		response.setContentType("application/json");
+		PrintWriter out = response.getWriter();
+		Dao dao = new Dao();
+		try {
+			int asiakasid = Integer.parseInt(hakusana);
+			if (dao.poistaAsiakas(asiakasid)) {
+				out.println("{\"response\":0}");
+			}
+		} catch (NumberFormatException e) {
+			out.println("{\"response\":1}");
+		} 
+	}
+
+	@Override
+	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		System.err.println("doPut");
+		super.doPut(request, response);
+	}
+	
 }
