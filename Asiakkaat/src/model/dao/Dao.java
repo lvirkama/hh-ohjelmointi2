@@ -95,4 +95,52 @@ public class Dao {
 		}
 		return false;
 	}
+	
+	public Asiakas etsiAsiakas(int asiakasid) {
+		Connection con = yhdista();
+		if (con != null) {
+			try {		
+				PreparedStatement ps = con.prepareStatement("SELECT * FROM asiakkaat WHERE asiakas_id=?");
+				ps.setInt(1, asiakasid);
+				ResultSet rs = ps.executeQuery();
+				if (rs.next()) {
+					Asiakas asiakas = new Asiakas();
+					asiakas.setAsiakasID(rs.getInt("asiakas_ID"));
+					asiakas.setEtunimi(rs.getString("etunimi"));
+					asiakas.setSukunimi(rs.getString("sukunimi"));
+					asiakas.setSposti(rs.getString("sposti"));
+					asiakas.setPuhelin(rs.getString("puhelin"));
+					con.close();
+					return asiakas;
+				}
+			} catch (SQLException e) {
+			}
+		}
+		return null;
+	}
+	
+	public boolean muutaAsiakas(Asiakas asiakas) {
+		Connection con = yhdista();
+		if (con != null) {
+			try {
+				PreparedStatement ps = con.prepareStatement("UPDATE asiakkaat SET etunimi=?, sukunimi=?, puhelin=?, sposti=? WHERE asiakas_ID=?");
+				ps.setString(1, asiakas.getEtunimi());
+				ps.setString(2, asiakas.getSukunimi());
+				ps.setString(3, asiakas.getPuhelin());
+				ps.setString(4, asiakas.getSposti());
+				ps.setInt(5, asiakas.getAsiakasID());
+				ps.executeUpdate();
+				con.close();
+				return true;
+			} catch (SQLException e) {
+			} finally {
+				try {
+					con.close();
+				} catch (Exception e) {}
+			}
+			return false;
+		}
+	
+		return false;
+	}
 }
