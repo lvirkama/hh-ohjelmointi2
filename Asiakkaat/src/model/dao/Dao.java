@@ -27,6 +27,7 @@ public class Dao {
 	
 	public ArrayList<Asiakas> lueKaikki(String hakusana) {
 		Connection con = yhdista();
+		if (hakusana.isEmpty()) { hakusana = "%"; }
 		ArrayList<Asiakas> asiakkaat = new ArrayList<Asiakas>();
 		if (con != null) {
 			try {

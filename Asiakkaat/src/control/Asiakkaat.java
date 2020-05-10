@@ -39,7 +39,7 @@ public class Asiakkaat extends HttpServlet {
 		ArrayList<Asiakas> asiakkaat;
 		String strJSON = "";
 		if (pathInfo == null) {
-			asiakkaat = dao.lueKaikki("");
+			asiakkaat = dao.lueKaikki("%");
 			strJSON = new JSONObject().put("asiakkaat", asiakkaat).toString();
 		}
 		else if (pathInfo.indexOf("haeyksi") != -1) {
