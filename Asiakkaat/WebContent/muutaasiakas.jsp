@@ -4,8 +4,6 @@
 <html>
 <head>
 <meta charset="ISO-8859-1">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.15.0/jquery.validate.min.js"></script>
 <script src="scripts/main.js"></script>
 <title>Asiakkaan muutos</title>
 <style>
@@ -19,7 +17,7 @@ a {
 </style>
 </head>
 <body>
-<form id="asiakasmuutos">
+<form id="asiakasmuutos" onsubmit="muutaTiedot();return false;">
 <table>
 	<thead>
 		<tr>
@@ -49,68 +47,63 @@ a {
 <span id="ilmo"></span>
 </body>
 <script>
-$(document).ready(function(){
-	var asiakasid = requestURLParam("id"); //Funktio löytyy scripts/main.js 	
-	$.ajax({url:"Asiakkaat/haeyksi/"+asiakasid, type:"GET", dataType:"json", success:function(result){	
-		$("#asiakasid").val(result.asiakasid);		
-		$("#etunimi").val(result.etunimi);	
-		$("#sukunimi").val(result.sukunimi);
-		$("#puhelin").val(result.puhelin);
-		$("#sposti").val(result.sposti);			
-    }});	
-	$("#asiakasmuutos").validate({
-		rules: {
-			etunimi:  {
-				required: true,
-				minlength: 2				
-			},	
-			sukunimi:  {
-				required: true,
-				minlength: 2	
-			},
-			puhelin:  {
-				required: true,
-				minlength: 6
-			},	
-			sposti:  {
-				required: true,
-				email: true
-			}	
-		},
-		messages: {
-			etunimi: {     
-				required: "Puuttuu",
-				minlength: "Liian lyhyt (2)"		
-			},
-			sukunimi: {
-				required: "Puuttuu",
-				minlength: "Liian lyhyt (2)"
-			},
-			puhelin: {
-				required: "Puuttuu",
-				minlength: "Liian lyhyt (6)"
-			},
-			sposti: {
-				required: "Puuttuu",
-				email: "Väärä muoto"
-			}
-		},			
-		submitHandler: function(form) {	
-			muutaTiedot();
-		}		
-	}); 	
-});
+var asiakasid = requestURLParam("id");
+fetch("Asiakkaat/haeyksi/" + asiakasid,{
+    method: 'GET'	      
+  })
+.then( function (response) {
+	return response.json()
+})
+.then( function (responseJson) {	
+	document.getElementById("asiakasid").value = responseJson.asiakasid;		
+	document.getElementById("etunimi").value = responseJson.etunimi;	
+	document.getElementById("sukunimi").value = responseJson.sukunimi;	
+	document.getElementById("puhelin").value = responseJson.puhelin;	
+	document.getElementById("sposti").value = responseJson.sposti;	
+});	
 //funktio tietojen lisäämistä varten. Kutsutaan backin POST-metodia ja välitetään kutsun mukana uudet tiedot json-stringinä.
 //POST /autot/
 function muutaTiedot(){	
-	var formJsonStr = formDataJsonStr($("#asiakasmuutos").serializeArray()); //muutetaan lomakkeen tiedot json-stringiksi
-	$.ajax({url:"Asiakkaat", data:formJsonStr, type:"PUT", dataType:"json", success:function(result) { //result on joko {"response:1"} tai {"response:0"}       
-		if(result.response==1){
-      	$("#ilmo").html("Asiakkaan muuttaminen epäonnistui.");
-      }else if(result.response==0){			
-      	$("#ilmo").html("Asiakkaan muuttaminen onnistui.");
-		}
-  }});	
+	var ilmo="";
+	if (document.getElementById("etunimi").value.length <= 2) {
+		ilmo = "Etunimi liian lyhyt (tulee olla yli 2 merkkiä)";
+	} else if (document.getElementById("sukunimi").value.length <= 2) {
+		ilmo = "Sukunimi liian lyhyt (tulee olla yli 2 merkkiä)";
+	} else if (document.getElementById("puhelin").value.length <= 6) {
+		ilmo = "Puhelinnumero liian lyhyt (tulee olla yli 6 merkkiä)";
+	} else if (/^[^.@\s]+(\.[^.@\s]+)*@[^.@\s]+(\.[^.@\s]+)*$/.test(document.getElementById("sposti").value) != true) {
+		ilmo = "Sähköpostiosoite väärän muotoinen";
+	}
+	if (ilmo != '') {
+		document.getElementById("ilmo").innerHTML = ilmo;
+		setTimeout(function(){ document.getElementById("ilmo").innerHTML=""; }, 5000);
+		return;
+	}
+	document.getElementById("asiakasid").value = siivoa(document.getElementById("asiakasid").value);		
+	document.getElementById("etunimi").value = siivoa(document.getElementById("etunimi").value);
+	document.getElementById("sukunimi").value = siivoa(document.getElementById("sukunimi").value);
+	document.getElementById("puhelin").value = siivoa(document.getElementById("puhelin").value);
+	document.getElementById("sposti").value = siivoa(document.getElementById("sposti").value);
+
+	var formJsonStr = formDataToJSON(document.getElementById("asiakasmuutos")); //muutetaan lomakkeen tiedot json-stringiksi
+	console.log(formJsonStr);
+
+	fetch("Asiakkaat",{
+	      method: 'PUT',
+	      body:formJsonStr
+	    })
+	.then( function (response) {
+		return response.json();
+	})
+	.then( function (responseJson) {	
+		var vastaus = responseJson.response;		
+		if(vastaus==1){
+			document.getElementById("ilmo").innerHTML= "Asiakkaan muuttaminen epäonnistui.";
+      	}else if(vastaus==0){	        	
+      		document.getElementById("ilmo").innerHTML= "Asiakkaan muuttaminen onnistui.";			      	
+		}	
+		setTimeout(function(){ document.getElementById("ilmo").innerHTML=""; }, 5000);
+	});	
 }
 </script>
 </html>
